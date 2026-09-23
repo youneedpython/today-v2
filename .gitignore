@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.gradle/
+*.log
+*.tsbuildinfo
+.vscode/
+
+backend/out/
+backend/build/
+backend/bin/
+frontend/dist/
+frontend/node_modules/
