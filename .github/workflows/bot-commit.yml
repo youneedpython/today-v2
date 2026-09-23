@@ -1,0 +1,48 @@
+name: GitHub Actions Bot Commit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bot-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 Checkout
+        uses: actions/checkout@v4
+
+      - name: bot-log.txt 수정
+        run: echo "GitHub Actions Bot 실행: $(date)" >> bot-log.txt
+
+      - name: Git 사용자 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 변경 사항 확인
+        id: changes
+        run: |
+          git status --short
+
+          if git diff --quiet -- bot-log.txt && git diff --cached --quiet -- bot-log.txt && git ls-files --error-unmatch bot-log.txt >/dev/null 2>&1; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "변경 사항이 없습니다."
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "변경 사항이 있습니다."
+          fi
+
+      - name: bot-log.txt Staging
+        if: steps.changes.outputs.has_changes == 'true'
+        run: git add bot-log.txt
+
+      - name: Commit 생성
+        if: steps.changes.outputs.has_changes == 'true'
+        run: git commit -m "chore: GitHub Actions Bot 실행 기록 업데이트"
+
+      - name: Push
+        if: steps.changes.outputs.has_changes == 'true'
+        run: git push
